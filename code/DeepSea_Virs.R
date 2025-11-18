@@ -22,9 +22,17 @@ gold_metadata <- read_excel("/scratch/langwig/Projects/DeepSea_VirusReview/goldD
 
 ############################### Processing ########################################
 
+# See what the Strait environment is about
+imgvr4_filt_Strait <- imgvr4 %>%
+  filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Strait")
+
+# See what the Strait environment is about
+imgvr4_filt_Aquifer <- imgvr4 %>%
+  filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Aquifer")
+
 # Remove non-deep sea data
 imgvr4_filt <- imgvr4 %>%
-    filter(!grepl("Coastal|Continental margin|Deep subsurface|Epipelagic|Fjord|Fossil|Harbor|Inlet|Intertidal zone|Marine lake|Mud volcano|Neritic zone|River plume|Sea ice|Seaweed|Subtidal zone|Unclassified|Volcanic|Wetlands", `Ecosystem classification`))
+    filter(!grepl("Coastal|Strait|Aquifer|aquifer|Continental margin|Deep subsurface|Epipelagic|Fjord|Fossil|Harbor|Inlet|Intertidal zone|Marine lake|Mud volcano|Neritic zone|River plume|Sea ice|Seaweed|Subtidal zone|Unclassified|Volcanic|Wetlands", `Ecosystem classification`))
   #filter(!`Ecosystem classification` %in% c("Coastal", "Continental margin", "Deep subsurface", "Epipelagic", "Fjord", "Fossil", "Harbor", "Inlet", "Intertidal zone", "Marine lake", "Mud volcano", "Neritic zone", "Neritic zone/Coastal water", "River plume", "Sea ice", "Seaweed", "Subtidal zone", "Unclassified", "Volcanic", "Wetlands"))
     #filter(!grepl("Coastal|Continental margin|Deep subsurface|Epipelagic|Fjord|Fossil|Harbor|Inlet|Intertidal|Neritic|River plume|Sea ice|Seaweed|Wetlands|Volcanic|Unclassified|Subtidal zone|", `Ecosystem classification`))
 
@@ -76,6 +84,7 @@ sum(str_detect(imgvr4_oceanic_tst$`PROJECT NAME`, regex("sediment", ignore_case 
 sum(str_detect(imgvr4_oceanic_tst$`PROJECT NAME`, "Seawater"), na.rm = TRUE)
 sum(str_detect(imgvr4_oceanic_tst$`PROJECT NAME`, regex("700m", ignore_case = TRUE)), na.rm = TRUE)
 sum(str_detect(imgvr4_oceanic_tst$`PROJECT NAME`, regex("JdFR", ignore_case = TRUE)), na.rm = TRUE)
+sum(str_detect(imgvr4_oceanic_tst$`PROJECT NAME`, regex(" 10m", ignore_case = TRUE)), na.rm = TRUE)
 
 envmts <- as.data.frame(unique(imgvr4_oceanic_tst$`PROJECT NAME`))
 colnames(envmts) <- "unique_env"
@@ -84,11 +93,11 @@ colnames(envmts) <- "unique_env"
 
 # clear cases and patterns to match for removal
 envmts_tst <- envmts %>%
-  filter(!str_detect(unique_env, regex("Prochlorococcus|phytoplankton|surface|plastic|mangrove|subsurface|Inlet|Oct19|AMALJGI-DNA-1|AMALJGI-DNA-2|AMALJGI-DNA-9|AMALJGI-DNA-10|_10m|5mSIP|Malaspina viral metaG Antarct|Costa Rica Dome|ArcticOcean|SST-1|SST-2|Lowphox|Arctic Ocean - MOSAiC", ignore_case = TRUE)))
+  filter(!str_detect(unique_env, regex("Prochlorococcus|phytoplankton|surface|plastic|mangrove|subsurface|Inlet|Oct19|AMALJGI-DNA-1|AMALJGI-DNA-2|AMALJGI-DNA-9|AMALJGI-DNA-10|_10m|5mSIP|Malaspina viral metaG Antarct|Costa Rica Dome|ArcticOcean|SST-1|SST-2|Lowphox|Arctic Ocean - MOSAiC| 10m|P04_10|SI03|_150m|_50m|CsCl metaG", ignore_case = TRUE)))
 
 # clear cases and patterns to match for removal
 imgvr4_oceanic_metadata_filt <- imgvr4_oceanic_tst %>%
-  filter(!str_detect(`PROJECT NAME`, regex("Prochlorococcus|phytoplankton|surface|plastic|mangrove|subsurface|Inlet|Oct19|AMALJGI-DNA-1|AMALJGI-DNA-2|AMALJGI-DNA-9|AMALJGI-DNA-10|_10m|5mSIP|Malaspina viral metaG Antarct|Costa Rica Dome|ArcticOcean|SST-1|SST-2|Lowphox|Arctic Ocean - MOSAiC", ignore_case = TRUE)))
+  filter(!str_detect(`PROJECT NAME`, regex("Prochlorococcus|phytoplankton|surface|plastic|mangrove|subsurface|Inlet|Oct19|AMALJGI-DNA-1|AMALJGI-DNA-2|AMALJGI-DNA-9|AMALJGI-DNA-10|_10m|5mSIP|Malaspina viral metaG Antarct|Costa Rica Dome|ArcticOcean|SST-1|SST-2|Lowphox|Arctic Ocean - MOSAiC| 10m|P04_10|SI03|_150m|_50m|CsCl metaG", ignore_case = TRUE)))
 
 # Manual searches of info above. Descriptions below...
 # Samples with names "Seawater viral communities from ... Oct19" are from 5 m depth
@@ -114,7 +123,7 @@ envmts_tst <- envmts %>%
     str_detect(envmts$unique_env, regex("Gulf", ignore_case = TRUE)) ~ "Gulf",
     str_detect(envmts$unique_env, regex("sediment", ignore_case = TRUE)) ~ "Sediment",
     str_detect(envmts$unique_env, regex("Sea bed", ignore_case = TRUE)) ~ "Benthic",
-    str_detect(envmts$unique_env, regex("aquifer", ignore_case = TRUE)) ~ "Aquifer",
+    #str_detect(envmts$unique_env, regex("aquifer", ignore_case = TRUE)) ~ "Aquifer",
     str_detect(envmts$unique_env, regex("AMALGI", ignore_case = TRUE)) ~ "Pelagic zone",
     str_detect(envmts$unique_env, regex("P26_", ignore_case = TRUE)) ~ "Pelagic zone",
     str_detect(envmts$unique_env, regex("P4_", ignore_case = TRUE)) ~ "Pelagic zone",
@@ -144,7 +153,7 @@ imgvr4_oceanic_metadata_filt_mod <- imgvr4_oceanic_metadata_filt %>%
     str_detect(imgvr4_oceanic_metadata_filt$`PROJECT NAME`, regex("Gulf", ignore_case = TRUE)) ~ "Gulf",
     str_detect(imgvr4_oceanic_metadata_filt$`PROJECT NAME`, regex("sediment", ignore_case = TRUE)) ~ "Sediment",
     str_detect(imgvr4_oceanic_metadata_filt$`PROJECT NAME`, regex("Sea bed", ignore_case = TRUE)) ~ "Benthic",
-    str_detect(imgvr4_oceanic_metadata_filt$`PROJECT NAME`, regex("aquifer", ignore_case = TRUE)) ~ "Aquifer",
+    #str_detect(imgvr4_oceanic_metadata_filt$`PROJECT NAME`, regex("aquifer", ignore_case = TRUE)) ~ "Aquifer",
     str_detect(imgvr4_oceanic_metadata_filt$`PROJECT NAME`, regex("AMALGI", ignore_case = TRUE)) ~ "Pelagic zone",
     str_detect(imgvr4_oceanic_metadata_filt$`PROJECT NAME`, regex("P26_", ignore_case = TRUE)) ~ "Pelagic zone",
     str_detect(imgvr4_oceanic_metadata_filt$`PROJECT NAME`, regex("P4_", ignore_case = TRUE)) ~ "Pelagic zone",
@@ -160,12 +169,17 @@ imgvr4_oceanic_metadata_filt_mod <- imgvr4_oceanic_metadata_filt %>%
     str_detect(imgvr4_oceanic_metadata_filt$`PROJECT NAME`, regex("- LP-", ignore_case = TRUE)) ~ "Pelagic zone",
     TRUE ~ `Ecosystem classification`  # leave everything else as-is
 ))
-#915,076 originally
+#822,184 originally
 
 # Remove oceanic
 imgvr4_oceanic_metadata_filt_mod <- imgvr4_oceanic_metadata_filt_mod %>%
   filter(`Ecosystem classification` != "Environmental;Aquatic;Marine;Oceanic")
-#639,831 after
+#547,311 after
+
+# See OMZs alone
+imgvr4_oceanic_metadata_OMZ <- imgvr4_oceanic_metadata_filt_mod %>%
+  filter(`Ecosystem classification` == "OMZ")
+#297,142 after
 
 # Remove oceanic from OG so can recombine
 imgvr4_NoOceanic <- imgvr4_filt %>%
@@ -227,6 +241,9 @@ plot <- plot %>%
 plot <- plot %>%
   group_by(Specific_env) %>%
   summarise(total_UVIGs = sum(UVIG_count, na.rm = TRUE))
+
+# how many viruses total in this?
+sum(plot$total_UVIGs)
 
 ################################ Lollipop plot #########################################
 
