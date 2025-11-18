@@ -30,6 +30,10 @@ imgvr4_filt_Strait <- imgvr4 %>%
 imgvr4_filt_Aquifer <- imgvr4 %>%
   filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Aquifer")
 
+# See what the Hypoxic zone environment is about
+imgvr4_filt_Hypoxic <- imgvr4 %>%
+  filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Hypoxic zone")
+
 # Remove non-deep sea data
 imgvr4_filt <- imgvr4 %>%
     filter(!grepl("Coastal|Strait|Aquifer|aquifer|Continental margin|Deep subsurface|Epipelagic|Fjord|Fossil|Harbor|Inlet|Intertidal zone|Marine lake|Mud volcano|Neritic zone|River plume|Sea ice|Seaweed|Subtidal zone|Unclassified|Volcanic|Wetlands", `Ecosystem classification`))
@@ -46,7 +50,7 @@ imgvr4_filt <- imgvr4 %>%
 imgvr4_oceanic <- imgvr4_filt %>%
     filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Oceanic")
 
-# Make tax id col character rather than string
+# Make tax id col character rather than numeric
 imgvr4_oceanic$Taxon_oid <- as.character(imgvr4_oceanic$Taxon_oid)
 
 # Match taxid to table with GOLD ID
@@ -185,6 +189,31 @@ imgvr4_oceanic_metadata_OMZ <- imgvr4_oceanic_metadata_filt_mod %>%
 imgvr4_NoOceanic <- imgvr4_filt %>%
   filter(`Ecosystem classification` != "Environmental;Aquatic;Marine;Oceanic")
 
+
+
+###### Map PROJECT NAME to non oceanic to further filter if necessary ######
+# Make tax id col character rather than numeric
+imgvr4_NoOceanic$Taxon_oid <- as.character(imgvr4_NoOceanic$Taxon_oid)
+
+# Match taxid to table with GOLD ID
+imgvr4_NoOceanic <- gold_taxid %>%
+  dplyr::select(c("AP IMG TAXON ID", "AP PROJECT GOLD IDS")) %>%
+  right_join(imgvr4_NoOceanic, by = c("AP IMG TAXON ID" = "Taxon_oid"))
+
+# See how successful that was
+sum(is.na(imgvr4_NoOceanic$`AP PROJECT GOLD IDS`))
+#185 no match?
+
+# Match B and R cols in excel
+imgvr4_NoOceanic <- gold_metadata_filt %>%
+  right_join(imgvr4_NoOceanic, by = c("PROJECT GOLD ID" = "AP PROJECT GOLD IDS"))
+
+# See how successful that was
+sum(is.na(imgvr4_NoOceanic$`PROJECT NAME`))
+#10,549 with no project name
+
+
+
 # get smaller dfs for combining
 imgvr4_oceanic_metadata_filt_mod <- imgvr4_oceanic_metadata_filt_mod %>%
   dplyr::select(c("UVIG", "Ecosystem classification"))
@@ -231,6 +260,15 @@ plot <- plot %>%
   group_by(`Ecosystem classification`) %>%
   summarise(UVIG_count = sum(UVIG_count), .groups = "drop")
 
+# Combine Hypoxic zone and OMZ
+plot <- plot %>%
+  mutate(`Ecosystem classification` = if_else(
+    `Ecosystem classification` == "Environmental;Aquatic;Marine;Hypoxic zone",
+    "Environmental;Aquatic;Marine;OMZ", # merging 9575 hypoxic zone viruses with OMZ
+    `Ecosystem classification`)) %>%
+  group_by(`Ecosystem classification`) %>%
+  summarise(UVIG_count = sum(UVIG_count), .groups = "drop")
+
 # Get the most specific name
 plot <- plot %>%
   mutate(Specific_env = str_replace(`Ecosystem classification`, ";$", "")) %>%  # remove trailing ;
@@ -247,13 +285,24 @@ sum(plot$total_UVIGs)
 
 ################################ Lollipop plot #########################################
 
-ggplot(plot, aes(x = total_UVIGs, y = reorder(Specific_env, total_UVIGs))) +
+plot <- ggplot(plot, aes(x = total_UVIGs, y = reorder(Specific_env, total_UVIGs))) +
   geom_segment(aes(x = 0, xend = total_UVIGs, yend = Specific_env), color = "grey60") +
-  geom_point(size = 3, color = "steelblue") +
+  geom_point(size = 5, color = "#209bcf") +
   labs(
     x = "UVIG Count",
     y = "Ecosystem",
     title = ""
   ) +
-  theme_minimal(base_size = 13) +
-  scale_x_continuous(expand = c(0,0), labels = comma)
+  theme_minimal(base_size = 15) +
+  scale_x_continuous(expand = c(.01,0), labels = comma) +
+  theme(
+    panel.grid.major.y = element_blank(),  # remove horizontal gridlines
+    panel.grid.minor.y = element_blank(),
+    
+    panel.grid.major.x = element_line(linetype = "dashed"),  # dashed vertical gridlines
+    panel.grid.minor.x = element_blank()
+  )
+plot
+
+ggsave("/scratch/langwig/Projects/DeepSea_VirusReview/DeepSea_Vir/visuals/UVIGs_DeepSea_IMGVR.png", 
+plot, dpi = 500, bg = "transparent") #change height to 15 when mod'ing legend
