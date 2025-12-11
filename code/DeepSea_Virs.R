@@ -22,17 +22,17 @@ gold_metadata <- read_excel("/scratch/langwig/Projects/DeepSea_VirusReview/goldD
 
 ############################### Processing ########################################
 
-# See what the Strait environment is about
-imgvr4_filt_Strait <- imgvr4 %>%
-  filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Strait")
+# # See what the Strait environment is about
+# imgvr4_filt_Strait <- imgvr4 %>%
+#   filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Strait")
 
-# See what the Strait environment is about
-imgvr4_filt_Aquifer <- imgvr4 %>%
-  filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Aquifer")
+# # See what the Strait environment is about
+# imgvr4_filt_Aquifer <- imgvr4 %>%
+#   filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Aquifer")
 
-# See what the Hypoxic zone environment is about
-imgvr4_filt_Hypoxic <- imgvr4 %>%
-  filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Hypoxic zone")
+# # See what the Hypoxic zone environment is about
+# imgvr4_filt_Hypoxic <- imgvr4 %>%
+#   filter(`Ecosystem classification` == "Environmental;Aquatic;Marine;Hypoxic zone")
 
 # Remove non-deep sea data
 imgvr4_filt <- imgvr4 %>%
@@ -97,11 +97,11 @@ colnames(envmts) <- "unique_env"
 
 # clear cases and patterns to match for removal
 envmts_tst <- envmts %>%
-  filter(!str_detect(unique_env, regex("Prochlorococcus|phytoplankton|surface|plastic|mangrove|subsurface|Inlet|Oct19|AMALJGI-DNA-1|AMALJGI-DNA-2|AMALJGI-DNA-9|AMALJGI-DNA-10|_10m|5mSIP|Malaspina viral metaG Antarct|Costa Rica Dome|ArcticOcean|SST-1|SST-2|Lowphox|Arctic Ocean - MOSAiC| 10m|P04_10|SI03|_150m|_50m|CsCl metaG", ignore_case = TRUE)))
+  filter(!str_detect(unique_env, regex("Prochlorococcus|phytoplankton|surface|plastic|mangrove|subsurface|Inlet|Oct19|AMALJGI-DNA-1|AMALJGI-DNA-2|AMALJGI-DNA-9|AMALJGI-DNA-10|_10m|5mSIP|Malaspina viral metaG Antarct|Costa Rica Dome|ArcticOcean|SST-1|SST-2|Lowphox|Arctic Ocean - MOSAiC| 10m|P04_10|SI03|_150m|_50m|CsCl metaG|[0-9]_ETSP_OMZ_AT|[0-9]B_ETSP_OMZ_AT", ignore_case = TRUE)))
 
 # clear cases and patterns to match for removal
 imgvr4_oceanic_metadata_filt <- imgvr4_oceanic_tst %>%
-  filter(!str_detect(`PROJECT NAME`, regex("Prochlorococcus|phytoplankton|surface|plastic|mangrove|subsurface|Inlet|Oct19|AMALJGI-DNA-1|AMALJGI-DNA-2|AMALJGI-DNA-9|AMALJGI-DNA-10|_10m|5mSIP|Malaspina viral metaG Antarct|Costa Rica Dome|ArcticOcean|SST-1|SST-2|Lowphox|Arctic Ocean - MOSAiC| 10m|P04_10|SI03|_150m|_50m|CsCl metaG", ignore_case = TRUE)))
+  filter(!str_detect(`PROJECT NAME`, regex("Prochlorococcus|phytoplankton|surface|plastic|mangrove|subsurface|Inlet|Oct19|AMALJGI-DNA-1|AMALJGI-DNA-2|AMALJGI-DNA-9|AMALJGI-DNA-10|_10m|5mSIP|Malaspina viral metaG Antarct|Costa Rica Dome|ArcticOcean|SST-1|SST-2|Lowphox|Arctic Ocean - MOSAiC| 10m|P04_10|SI03|_150m|_50m|CsCl metaG|[0-9]_ETSP_OMZ_AT|[0-9]B_ETSP_OMZ_AT", ignore_case = TRUE)))
 
 # Manual searches of info above. Descriptions below...
 # Samples with names "Seawater viral communities from ... Oct19" are from 5 m depth
@@ -114,35 +114,36 @@ imgvr4_oceanic_metadata_filt <- imgvr4_oceanic_tst %>%
 # SST-1 and 2 from Gs0135243, surface samples
 # Lowphox all from Gs0067852, shallow
 # Arctic Ocean - MOSAiC from Gs0153906, shallow
+# [0-9]B_ETSP_OMZ_AT associated with shallow OMZ
 
-# check logic
-envmts_tst <- envmts %>%
-  mutate(`Ecosystem classification` = case_when(
-    str_detect(envmts$unique_env, regex("oxygen minimum zone", ignore_case = TRUE)) ~ "OMZ",
-    str_detect(envmts$unique_env, regex("OMZ", ignore_case = TRUE)) ~ "OMZ",
-    str_detect(envmts$unique_env, regex("oil-polluted", ignore_case = TRUE)) ~ "Oil polluted",
-    str_detect(envmts$unique_env, regex("Deepwater Horizon", ignore_case = TRUE)) ~ "Oil polluted",
-    str_detect(envmts$unique_env, regex("oil contamination", ignore_case = TRUE)) ~ "Oil polluted",
-    str_detect(envmts$unique_env, regex("seawater", ignore_case = TRUE)) ~ "Pelagic zone",
-    str_detect(envmts$unique_env, regex("Gulf", ignore_case = TRUE)) ~ "Gulf",
-    str_detect(envmts$unique_env, regex("sediment", ignore_case = TRUE)) ~ "Sediment",
-    str_detect(envmts$unique_env, regex("Sea bed", ignore_case = TRUE)) ~ "Benthic",
-    #str_detect(envmts$unique_env, regex("aquifer", ignore_case = TRUE)) ~ "Aquifer",
-    str_detect(envmts$unique_env, regex("AMALGI", ignore_case = TRUE)) ~ "Pelagic zone",
-    str_detect(envmts$unique_env, regex("P26_", ignore_case = TRUE)) ~ "Pelagic zone",
-    str_detect(envmts$unique_env, regex("P4_", ignore_case = TRUE)) ~ "Pelagic zone",
-    str_detect(envmts$unique_env, regex("JdFR", ignore_case = TRUE)) ~ "Bathypelagic",
-    str_detect(envmts$unique_env, regex("700m", ignore_case = TRUE)) ~ "Mesopelagic",
-    str_detect(envmts$unique_env, regex("1000", ignore_case = TRUE)) ~ "Bathypelagic",
-    str_detect(envmts$unique_env, regex("Malaspina", ignore_case = TRUE)) ~ "Bathypelagic",
-    str_detect(envmts$unique_env, regex("MSP", ignore_case = TRUE)) ~ "Bathypelagic",
-    str_detect(envmts$unique_env, regex("- MP", ignore_case = TRUE)) ~ "Bathypelagic",
-    str_detect(envmts$unique_env, regex("500_MG", ignore_case = TRUE)) ~ "Mesopelagic",
-    str_detect(envmts$unique_env, regex("200_MG", ignore_case = TRUE)) ~ "Mesopelagic",
-    str_detect(envmts$unique_env, regex("WHOI_OMZ", ignore_case = TRUE)) ~ "Pelagic zone",
-    str_detect(envmts$unique_env, regex("- LP-", ignore_case = TRUE)) ~ "Pelagic zone",
-    TRUE ~ unique_env  # leave everything else as-is
-))
+# # check logic
+# envmts_tst <- envmts %>%
+#   mutate(`Ecosystem classification` = case_when(
+#     str_detect(envmts$unique_env, regex("oxygen minimum zone", ignore_case = TRUE)) ~ "OMZ",
+#     str_detect(envmts$unique_env, regex("OMZ", ignore_case = TRUE)) ~ "OMZ",
+#     str_detect(envmts$unique_env, regex("oil-polluted", ignore_case = TRUE)) ~ "Oil polluted",
+#     str_detect(envmts$unique_env, regex("Deepwater Horizon", ignore_case = TRUE)) ~ "Oil polluted",
+#     str_detect(envmts$unique_env, regex("oil contamination", ignore_case = TRUE)) ~ "Oil polluted",
+#     str_detect(envmts$unique_env, regex("seawater", ignore_case = TRUE)) ~ "Pelagic zone",
+#     str_detect(envmts$unique_env, regex("Gulf", ignore_case = TRUE)) ~ "Gulf",
+#     str_detect(envmts$unique_env, regex("sediment", ignore_case = TRUE)) ~ "Sediment",
+#     str_detect(envmts$unique_env, regex("Sea bed", ignore_case = TRUE)) ~ "Benthic",
+#     #str_detect(envmts$unique_env, regex("aquifer", ignore_case = TRUE)) ~ "Aquifer",
+#     str_detect(envmts$unique_env, regex("AMALGI", ignore_case = TRUE)) ~ "Pelagic zone",
+#     str_detect(envmts$unique_env, regex("P26_", ignore_case = TRUE)) ~ "Pelagic zone",
+#     str_detect(envmts$unique_env, regex("P4_", ignore_case = TRUE)) ~ "Pelagic zone",
+#     str_detect(envmts$unique_env, regex("JdFR", ignore_case = TRUE)) ~ "Bathypelagic",
+#     str_detect(envmts$unique_env, regex("700m", ignore_case = TRUE)) ~ "Mesopelagic",
+#     str_detect(envmts$unique_env, regex("1000", ignore_case = TRUE)) ~ "Bathypelagic",
+#     str_detect(envmts$unique_env, regex("Malaspina", ignore_case = TRUE)) ~ "Bathypelagic",
+#     str_detect(envmts$unique_env, regex("MSP", ignore_case = TRUE)) ~ "Bathypelagic",
+#     str_detect(envmts$unique_env, regex("- MP", ignore_case = TRUE)) ~ "Bathypelagic",
+#     str_detect(envmts$unique_env, regex("500_MG", ignore_case = TRUE)) ~ "Mesopelagic",
+#     str_detect(envmts$unique_env, regex("200_MG", ignore_case = TRUE)) ~ "Mesopelagic",
+#     str_detect(envmts$unique_env, regex("WHOI_OMZ", ignore_case = TRUE)) ~ "Pelagic zone",
+#     str_detect(envmts$unique_env, regex("- LP-", ignore_case = TRUE)) ~ "Pelagic zone",
+#     TRUE ~ unique_env  # leave everything else as-is
+# ))
 
 # Then remove rows where only label Oceanic remains - these are ones I know to be shallow but was no easy way to match them all without omitting samples from same project that were deeper
 ####
@@ -173,17 +174,20 @@ imgvr4_oceanic_metadata_filt_mod <- imgvr4_oceanic_metadata_filt %>%
     str_detect(imgvr4_oceanic_metadata_filt$`PROJECT NAME`, regex("- LP-", ignore_case = TRUE)) ~ "Pelagic zone",
     TRUE ~ `Ecosystem classification`  # leave everything else as-is
 ))
-#822,184 originally
+#822,184 originally ... 574,750 w/o OMZ
 
 # Remove oceanic
 imgvr4_oceanic_metadata_filt_mod <- imgvr4_oceanic_metadata_filt_mod %>%
   filter(`Ecosystem classification` != "Environmental;Aquatic;Marine;Oceanic")
-#547,311 after
+#546,664 after ... #299,230 w/o OMZ
 
 # See OMZs alone
 imgvr4_oceanic_metadata_OMZ <- imgvr4_oceanic_metadata_filt_mod %>%
   filter(`Ecosystem classification` == "OMZ")
-#297,142 after
+#297,142 after ... #49,708 w/o OMZ
+
+imgvr4_oceanic_metadata_OMZ %>%
+  count(`PROJECT GOLD ID`, sort = TRUE)
 
 # Remove oceanic from OG so can recombine
 imgvr4_NoOceanic <- imgvr4_filt %>%
@@ -283,11 +287,23 @@ plot <- plot %>%
 # how many viruses total in this?
 sum(plot$total_UVIGs)
 
+# add col of metadata for whether cultured or not
+plot <- plot %>%
+  mutate(Cultured = case_when(
+    Specific_env %in% c("Hydrothermal vents", "Ocean trench" , "Sediment", "Bathypelagic") ~ "yes",
+    TRUE ~ "no"
+  ))
+
 ################################ Lollipop plot #########################################
 
-plot <- ggplot(plot, aes(x = total_UVIGs, y = reorder(Specific_env, total_UVIGs))) +
-  geom_segment(aes(x = 0, xend = total_UVIGs, yend = Specific_env), color = "grey60") +
+lolly <- ggplot(plot, aes(x = total_UVIGs, y = reorder(Specific_env, total_UVIGs))) +
+  geom_segment(aes(x = 0, xend = total_UVIGs, yend = Specific_env), color = "#000000", linewidth = 0.7) +
   geom_point(size = 5, color = "#209bcf") +
+  # geom_point(
+  #   data = subset(plot, Cultured == "no"),
+  #   aes(x = total_UVIGs + 0.05 * max(total_UVIGs)),
+  #   shape = 17, size = 4, color = "red"
+  # ) +
   labs(
     x = "UVIG Count",
     y = "Ecosystem",
@@ -302,7 +318,7 @@ plot <- ggplot(plot, aes(x = total_UVIGs, y = reorder(Specific_env, total_UVIGs)
     panel.grid.major.x = element_line(linetype = "dashed"),  # dashed vertical gridlines
     panel.grid.minor.x = element_blank()
   )
-plot
+lolly
 
 ggsave("/scratch/langwig/Projects/DeepSea_VirusReview/DeepSea_Vir/visuals/UVIGs_DeepSea_IMGVR.png", 
-plot, dpi = 500, bg = "transparent") #change height to 15 when mod'ing legend
+lolly, dpi = 500, bg = "transparent") #change height to 15 when mod'ing legend
