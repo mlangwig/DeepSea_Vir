@@ -33,6 +33,13 @@ imgvr4_filt <- imgvr4 %>%
 sum(imgvr4_filt$Predicted.Viruses)
 #757,054
 
+tst <- imgvr4_filt %>%
+  filter(str_detect(Genome.Name...Sample.Name, "seamount"))
+tst <- imgvr4_filt %>%
+  filter(str_detect(Study.Name, "seamount"))
+tst <- imgvr4_filt %>%
+  filter(str_detect(Ecosystem.Subtype, "Volcanic"))
+
 # how many have no depth listed? ## DECIDE IF YOU JUST WANT TO REMOVE THESE VIRUSES? ##
 sum(is.na(imgvr4_filt$Depth.In.Meters) | imgvr4_filt$Depth.In.Meters == "")
 # 65 projects
@@ -264,6 +271,16 @@ plot_final <- plot_final %>%
 # remove low counts
 plot_final <- plot_final %>%
   filter(UVIG_count > 2000)
+
+# Combine some categories
+plot_final$Ecosystem.Subtype <- gsub("Hadopelagic", "Ocean trench", plot_final$Ecosystem.Subtype)
+plot_final$Ecosystem.Subtype <- gsub("Intertidal zone", "Coastal", plot_final$Ecosystem.Subtype)
+plot_final$Ecosystem.Subtype <- gsub("Volcanic", "Hydrothermal vents", plot_final$Ecosystem.Subtype)
+
+# re sum
+plot_final <- plot_final %>%
+  group_by(`Ecosystem.Subtype`) %>%
+  summarise(UVIG_count = sum(UVIG_count))
 
 lolly <- ggplot(plot_final, aes(x = UVIG_count, y = reorder(Ecosystem.Subtype, UVIG_count))) +
   geom_segment(aes(x = 0, xend = UVIG_count, yend = Ecosystem.Subtype), color = "#000000", linewidth = 0.7) +
